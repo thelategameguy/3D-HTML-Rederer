@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: black;
+            color: green;
+        }
+
+        canvas {
+            border: 1px solid #00FF00; /* Green border for the canvas */
+        }
+    </style>
+    <title>3D Renderer with Orbit (Made with help from ChatGPT)</title>
+</head>
+<body>
+    <label for="x">X Coordinate:</label>
+    <input type="number" id="x" value="0" style="color: black;">
+    <label for="y">Y Coordinate:</label>
+    <input type="number" id="y" value="0" style="color: black;">
+    <label for="z">Z Coordinate:</label>
+    <input type="number" id="z" value="0" style="color: black;">
+    <button onclick="addPoint()">Add Point</button>
+    <br>
+    <label for="speed">Orbit Speed:</label>
+    <input type="range" id="speed" min="1" max="100" value="50" style="color: black;">
+    <button onclick="renderOrbit()">Render</button>
+    <canvas id="renderer" width="600" height="400"></canvas>
+
+    <script>
+        const points = [];
+        let orbitAngle = 0;
+        let orbitInterval;
+
+        function addPoint() {
+            const x = parseFloat(document.getElementById('x').value);
+            const y = parseFloat(document.getElementById('y').value);
+            const z = parseFloat(document.getElementById('z').value);
+            points.push({ x, y, z });
+            render();
+        }
+
+        function renderOrbit() {
+            // Start orbiting lines in a loop
+            orbitInterval = setInterval(() => {
+                const speed = parseFloat(document.getElementById('speed').value) / 10;
+                orbitAngle += speed; // Adjust the orbit speed here
+                render();
+            }, 30); // Update every 30 milliseconds (adjust as needed)
+        }
+
+        function render() {
+            const canvas = document.getElementById('renderer');
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grey grid lines
+            drawGrid(context, canvas, 20); // Pass canvas as a parameter
+
+            // Set line color to green
+            context.strokeStyle = '#00FF00'; // Green color
+
+            // Check if points array is not empty
+            if (points.length > 0) {
+                // Apply orbit transformation
+                const orbitRadians = (orbitAngle * Math.PI) / 180;
+                const cosTheta = Math.cos(orbitRadians);
+                const sinTheta = Math.sin(orbitRadians);
+
+                for (const point of points) {
+                    // Orbit around the center
+                    const orbitX = cosTheta * point.x - sinTheta * point.y;
+                    const orbitY = sinTheta * point.x + cosTheta * point.y;
+
+                    // Update point coordinates
+                    point.x = orbitX;
+                    point.y = orbitY;
+                }
+
+                // Draw lines between orbiting points
+                context.beginPath();
+                context.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    context.lineTo(points[i].x, points[i].y);
+                }
+                context.closePath();
+                context.stroke();
+            }
+        }
+
+        function drawGrid(context, canvas, spacing) {
+            context.strokeStyle = 'grey';
+            context.lineWidth = 0.5;
+
+            // Vertical lines
+            for (let x = 0; x <= canvas.width; x += spacing) {
+                context.beginPath();
+                context.moveTo(x, 0);
+                context.lineTo(x, canvas.height);
+                context.stroke();
+            }
+
+            // Horizontal lines
+            for (let y = 0; y <= canvas.height; y += spacing) {
+                context.beginPath();
+                context.moveTo(0, y);
+                context.lineTo(canvas.width, y);
+                context.stroke();
+            }
+        }
+    </script>
+</body>
+</html>
